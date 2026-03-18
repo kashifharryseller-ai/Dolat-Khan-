@@ -107,7 +107,11 @@ async function startServer() {
   // API Routes
   app.get('/api/books', (req, res) => {
     const books = db.prepare('SELECT * FROM books ORDER BY created_at DESC').all();
-    res.json(books);
+    const formattedBooks = books.map((b: any) => ({
+      ...b,
+      formats: b.formats ? (typeof b.formats === 'string' ? b.formats.split(',') : b.formats) : ['PDF', 'EPUB']
+    }));
+    res.json(formattedBooks);
   });
 
   app.post('/api/books', adminOnly, (req, res) => {
@@ -139,6 +143,18 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  app.put('/api/events/:id', adminOnly, (req, res) => {
+    const { title, celebrity_name, celebrity_title, event_date, quote, image_icon } = req.body;
+    db.prepare('UPDATE events SET title = ?, celebrity_name = ?, celebrity_title = ?, event_date = ?, quote = ?, image_icon = ? WHERE id = ?')
+      .run(title, celebrity_name, celebrity_title, event_date, quote, image_icon, req.params.id);
+    res.json({ success: true });
+  });
+
+  app.delete('/api/events/:id', adminOnly, (req, res) => {
+    db.prepare('DELETE FROM events WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+  });
+
   app.get('/api/subscriptions', (req, res) => {
     const subs = db.prepare('SELECT * FROM subscriptions').all();
     res.json(subs);
@@ -165,6 +181,23 @@ async function startServer() {
   app.get('/api/admin/users', adminOnly, (req, res) => {
     const users = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
     res.json(users);
+  });
+
+  app.post('/api/admin/users', adminOnly, (req, res) => {
+    const { email, role } = req.body;
+    const info = db.prepare('INSERT INTO users (email, role) VALUES (?, ?)').run(email, role || 'user');
+    res.json({ id: info.lastInsertRowid });
+  });
+
+  app.put('/api/admin/users/:id', adminOnly, (req, res) => {
+    const { role } = req.body;
+    db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, req.params.id);
+    res.json({ success: true });
+  });
+
+  app.delete('/api/admin/users/:id', adminOnly, (req, res) => {
+    db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
   });
 
   app.get('/api/stats', (req, res) => {

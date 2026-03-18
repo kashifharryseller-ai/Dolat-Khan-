@@ -71,12 +71,16 @@ export default function Splash() {
                 <div className="absolute inset-5 border-2 border-[#8B7355]/40 rounded-sm" />
                 <div className="absolute inset-7 border border-[#8B7355]/30 rounded-sm" />
                 
-                <h1 className="font-urdu text-4xl sm:text-6xl text-midnight text-center mb-4 relative z-10 drop-shadow-md">
+                <h1 className="font-urdu text-5xl sm:text-7xl text-midnight text-center mb-6 relative z-10 drop-shadow-xl font-bold pt-6 pb-2">
                   کتابوں کی دولت
                 </h1>
-                <p className="text-lg sm:text-xl text-slate font-bold tracking-[4px] relative z-10 uppercase">
-                  Kitabon Ki Dolat
-                </p>
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="h-[1px] w-8 bg-midnight/40" />
+                  <p className="text-sm sm:text-base text-midnight font-bold tracking-[6px] uppercase drop-shadow-sm">
+                    Kitabon Ki Dolat
+                  </p>
+                  <div className="h-[1px] w-8 bg-midnight/40" />
+                </div>
               </div>
               
               {/* Pages */}

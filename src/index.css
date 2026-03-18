@@ -4,7 +4,7 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", serif;
-  --font-urdu: "Noto Nastaliq Urdu", serif;
+  --font-urdu: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", serif;
   
   --color-midnight: #0A0A0B;
   --color-slate: #151518;

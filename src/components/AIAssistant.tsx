@@ -76,14 +76,43 @@ export default function AIAssistant() {
 
       const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (base64Audio) {
-        const audioUrl = `data:audio/pcm;base64,${base64Audio}`;
-        // Note: Raw PCM needs a wrapper or a specific player, but for simplicity in this demo:
-        // We'll assume the environment handles the playback or we'd use Web Audio API for PCM.
-        console.log("Audio generated, ready to play.");
+        // Decode base64 to ArrayBuffer
+        const binaryString = window.atob(base64Audio);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Convert PCM to AudioBuffer
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        
+        // The PCM data is 16-bit little-endian
+        const dataView = new DataView(bytes.buffer);
+        const numSamples = bytes.length / 2;
+        const audioBuffer = audioContext.createBuffer(1, numSamples, 24000);
+        const channelData = audioBuffer.getChannelData(0);
+        
+        for (let i = 0; i < numSamples; i++) {
+          // Read 16-bit integer and normalize to -1.0 to 1.0
+          const int16 = dataView.getInt16(i * 2, true);
+          channelData[i] = int16 / 32768.0;
+        }
+        
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.start(0);
+        
+        source.onended = () => {
+          setIsSpeaking(false);
+          audioContext.close();
+        };
+      } else {
+        setIsSpeaking(false);
       }
     } catch (error) {
       console.error(error);
-    } finally {
       setIsSpeaking(false);
     }
   };

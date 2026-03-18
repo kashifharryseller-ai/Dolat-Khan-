@@ -48,6 +48,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, query, where, doc, setDoc, deleteDoc, serverTimestamp, addDoc, orderBy } from 'firebase/firestore';
 import { OperationType } from './types';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProfileModal from './components/ProfileModal';
 
 const AIAssistant = lazy(() => import('./components/AIAssistant'));
 const Admin = lazy(() => import('./components/Admin'));
@@ -69,6 +70,7 @@ export default function App() {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [playingAudiobook, setPlayingAudiobook] = useState<Book | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [readingProgress, setReadingProgress] = useState<Record<string, number>>({});
@@ -251,9 +253,9 @@ export default function App() {
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-[1000] bg-midnight/80 backdrop-blur-2xl border-b border-gold/10">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 py-5 sm:py-6 flex justify-between items-center">
-          <div className="flex flex-col group cursor-pointer">
-            <span className="font-urdu text-3xl sm:text-4xl text-gold leading-none group-hover:text-gold-bright transition-colors">کتابوں کی دولت</span>
-            <span className="text-[10px] sm:text-xs text-gold/60 tracking-[4px] uppercase font-bold group-hover:text-gold transition-colors">Kitabon Ki Dolat</span>
+          <div className="flex flex-col group cursor-pointer relative">
+            <span className="font-urdu text-3xl sm:text-4xl text-gold leading-[2] drop-shadow-md transition-transform duration-500 group-hover:scale-105 pt-4 pb-2">کتابوں کی دولت</span>
+            <div className="absolute -inset-2 bg-gold/10 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
 
           <div className="hidden md:flex items-center gap-8 lg:gap-10">
@@ -267,16 +269,19 @@ export default function App() {
               <div className="absolute top-full left-0 mt-2 w-48 bg-midnight border border-gold/10 rounded-xl py-2 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-[1100] shadow-2xl">
                 <a href="#books" className="block px-4 py-2 text-sm text-white/70 hover:text-gold hover:bg-white/5 transition-colors">All Books</a>
                 <a href="#audiobooks" className="block px-4 py-2 text-sm text-white/70 hover:text-gold hover:bg-white/5 transition-colors">Audiobooks</a>
-                <a href="#caselaws" className="block px-4 py-2 text-sm text-white/70 hover:text-gold hover:bg-white/5 transition-colors">Case Laws</a>
               </div>
             </div>
 
+            <a href="#caselaws" className="text-sm font-medium text-white/70 hover:text-gold transition-colors relative group">Case Laws</a>
             <a href="#events" className="text-sm font-medium text-white/70 hover:text-gold transition-colors relative group">Events</a>
             <a href="#about" className="text-sm font-medium text-white/70 hover:text-gold transition-colors relative group">About</a>
             
             {user ? (
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 group cursor-pointer hover:border-gold/30 transition-all">
+                <div 
+                  onClick={() => setIsProfileOpen(true)}
+                  className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 group cursor-pointer hover:border-gold/30 transition-all"
+                >
                   <div className="relative">
                     <img src={user.photoURL || ''} alt="" className="w-8 h-8 rounded-full border border-gold/20" />
                     <div className="absolute -bottom-1 -right-1 bg-gold text-midnight rounded-full p-0.5">
@@ -288,9 +293,6 @@ export default function App() {
                     <span className="text-[8px] text-gold font-bold uppercase tracking-widest">Level 12 • 2450 pts</span>
                   </div>
                 </div>
-                <button onClick={logout} className="text-white/40 hover:text-accent transition-colors">
-                  <LogOut className="w-5 h-5" />
-                </button>
               </div>
             ) : (
               <button 
@@ -331,8 +333,14 @@ export default function App() {
                   <span className="text-gold text-xs font-bold uppercase tracking-widest">E-Library</span>
                   <a href="#books" onClick={() => setIsMenuOpen(false)} className="text-white/60 hover:text-gold py-1">All Books</a>
                   <a href="#audiobooks" onClick={() => setIsMenuOpen(false)} className="text-white/60 hover:text-gold py-1">Audiobooks</a>
-                  <a href="#caselaws" onClick={() => setIsMenuOpen(false)} className="text-white/60 hover:text-gold py-1">Case Laws</a>
                 </div>
+                <a 
+                  href="#caselaws" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-lg font-medium text-white/70 hover:text-gold py-2"
+                >
+                  Case Laws
+                </a>
                 <a 
                   href="#events" 
                   onClick={() => setIsMenuOpen(false)}
@@ -354,11 +362,43 @@ export default function App() {
                 >
                   Subscribe Now
                 </a>
+                
+                {user ? (
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setIsProfileOpen(true);
+                    }}
+                    className="flex items-center justify-center gap-2 bg-white/5 text-white py-4 rounded-xl font-bold mt-2 border border-white/10"
+                  >
+                    <UserIcon className="w-5 h-5" /> View Profile
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      signInWithGoogle();
+                    }}
+                    className="flex items-center justify-center gap-2 bg-white/5 text-white py-4 rounded-xl font-bold mt-2 border border-white/10"
+                  >
+                    <UserIcon className="w-5 h-5" /> Sign In
+                  </button>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </nav>
+
+      {/* Profile Modal */}
+      {user && (
+        <ProfileModal 
+          isOpen={isProfileOpen} 
+          onClose={() => setIsProfileOpen(false)} 
+          user={user} 
+          onLogout={logout} 
+        />
+      )}
 
       {/* Hero */}
       <section id="home" className="relative min-h-screen flex items-center justify-center pt-24 pb-12 overflow-hidden scroll-mt-20">
@@ -391,9 +431,22 @@ export default function App() {
               <div className="absolute -inset-4 bg-gold/10 rounded-[3rem] blur-2xl group-hover:bg-gold/20 transition-colors" />
             </div>
 
-            <h2 className="font-urdu text-5xl sm:text-7xl lg:text-9xl text-gold drop-shadow-2xl leading-[2.5] sm:leading-[2.8] mb-4">اصلی دولت کتابوں میں ہے</h2>
-            <h1 className="font-serif text-3xl sm:text-5xl lg:text-7xl text-white font-bold tracking-tight">Kitabon Ki Dolat</h1>
-            <p className="font-serif text-xl sm:text-2xl text-gold/60 italic mb-8">"Where Books Are True Wealth"</p>
+            <div className="flex flex-col items-center justify-center mb-12 relative group">
+              <div className="relative">
+                <h2 className="font-urdu text-6xl sm:text-8xl lg:text-[10rem] text-gold drop-shadow-2xl leading-[2] sm:leading-[2.2] lg:leading-[2.5] transition-transform duration-700 group-hover:scale-105 pt-8 pb-8">
+                  کتابوں کی دولت
+                </h2>
+                <div className="absolute -inset-10 bg-gold/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              </div>
+              <div className="flex items-center gap-6 mt-2 sm:mt-4">
+                <div className="h-[2px] w-16 sm:w-24 bg-gradient-to-r from-transparent via-gold/50 to-gold" />
+                <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl text-white/90 font-bold tracking-[0.3em] uppercase drop-shadow-lg">
+                  Kitabon Ki Dolat
+                </h1>
+                <div className="h-[2px] w-16 sm:w-24 bg-gradient-to-l from-transparent via-gold/50 to-gold" />
+              </div>
+            </div>
+            <p className="font-serif text-xl sm:text-2xl text-gold/80 italic mb-8 drop-shadow-md">"Where Books Are True Wealth"</p>
             <p className="max-w-3xl mx-auto text-base sm:text-lg lg:text-xl text-white/60 leading-relaxed mb-10">
               Welcome to Pakistan's premier digital publishing platform by Dolat Khan Kakar. 
               Discover, read, and own books that transform lives. Your journey into knowledge, 
@@ -917,9 +970,16 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24 mb-24 sm:mb-32">
             <div className="col-span-1 sm:col-span-2 space-y-10">
-              <div className="flex flex-col">
-                <span className="font-urdu text-5xl sm:text-6xl text-gold leading-none">کتابوں کی دولت</span>
-                <span className="text-xs sm:text-sm text-gold/60 tracking-[6px] uppercase font-bold mt-4">Kitabon Ki Dolat</span>
+              <div className="flex flex-col items-start group cursor-pointer">
+                <div className="relative">
+                  <span className="font-urdu text-6xl sm:text-7xl text-gold drop-shadow-2xl transition-transform duration-500 group-hover:scale-105 pt-6 pb-4">کتابوں کی دولت</span>
+                  <div className="absolute -inset-4 bg-gold/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+                <div className="flex items-center gap-4 mt-6">
+                  <div className="h-[1px] w-12 bg-gradient-to-r from-gold/80 to-transparent" />
+                  <span className="text-sm sm:text-base text-gold/90 tracking-[8px] uppercase font-bold drop-shadow-md">Kitabon Ki Dolat</span>
+                  <div className="h-[1px] w-12 bg-gradient-to-l from-gold/80 to-transparent" />
+                </div>
               </div>
               <p className="text-white/50 text-lg sm:text-xl leading-relaxed max-w-xl font-medium">
                 Dolat Khan Kakar is a celebrated Pakistani author, publisher, and advocate for literacy. 

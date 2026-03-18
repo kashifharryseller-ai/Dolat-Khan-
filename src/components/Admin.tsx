@@ -15,6 +15,8 @@ export default function Admin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Partial<Book>>({});
   const [editingSub, setEditingSub] = useState<Partial<Subscription>>({});
+  const [editingEvent, setEditingEvent] = useState<Partial<Event>>({});
+  const [editingUser, setEditingUser] = useState<Partial<User>>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -158,13 +160,97 @@ export default function Admin() {
   const handleEditBook = (book: Book) => {
     setEditingBook(book);
     setEditingSub({});
+    setEditingEvent({});
+    setEditingUser({});
     setIsModalOpen(true);
   };
 
   const handleEditSub = (sub: Subscription) => {
     setEditingSub(sub);
     setEditingBook({});
+    setEditingEvent({});
+    setEditingUser({});
     setIsModalOpen(true);
+  };
+
+  const handleEditEvent = (event: Event) => {
+    setEditingEvent(event);
+    setEditingBook({});
+    setEditingSub({});
+    setEditingUser({});
+    setIsModalOpen(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setEditingBook({});
+    setEditingSub({});
+    setEditingEvent({});
+    setIsModalOpen(true);
+  };
+
+  const handleSaveUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const isEditing = !!editingUser.id;
+      const url = isEditing ? `/api/admin/users/${editingUser.id}` : '/api/admin/users';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingUser)
+      });
+      if (res.ok) {
+        setIsModalOpen(false);
+        setEditingUser({});
+        fetchData();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    try {
+      await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+      fetchData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSaveEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const isEditing = !!editingEvent.id;
+      const url = isEditing ? `/api/events/${editingEvent.id}` : '/api/events';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingEvent)
+      });
+      if (res.ok) {
+        setIsModalOpen(false);
+        setEditingEvent({});
+        fetchData();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDeleteEvent = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    try {
+      await fetch(`/api/events/${id}`, { method: 'DELETE' });
+      fetchData();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleSaveSub = async (e: React.FormEvent) => {
@@ -310,16 +396,18 @@ export default function Admin() {
             <h2 className="text-4xl font-serif text-white capitalize">{activeTab}</h2>
             <p className="text-gold/60">Welcome back, Admin</p>
           </div>
-          {activeTab !== 'dashboard' && activeTab !== 'users' && (
+          {activeTab !== 'dashboard' && (
             <button 
               onClick={() => {
                 setEditingBook({});
                 setEditingSub({});
+                setEditingEvent({});
+                setEditingUser({});
                 setIsModalOpen(true);
               }}
               className="bg-gold text-midnight px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-gold-bright transition-colors"
             >
-              <Plus className="w-5 h-5" /> Add New {activeTab === 'books' ? 'Book' : activeTab === 'events' ? 'Event' : 'Plan'}
+              <Plus className="w-5 h-5" /> Add New {activeTab === 'books' ? 'Book' : activeTab === 'events' ? 'Event' : activeTab === 'users' ? 'User' : 'Plan'}
             </button>
           )}
         </header>
@@ -602,6 +690,68 @@ export default function Admin() {
           </div>
         )}
 
+        {activeTab === 'events' && (
+          <div className="bg-slate rounded-3xl border border-gold/10 overflow-hidden">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-midnight/50 text-gold/60 text-xs uppercase tracking-widest">
+                  <th className="px-8 py-6">Event Title</th>
+                  <th className="px-8 py-6">Celebrity</th>
+                  <th className="px-8 py-6">Date</th>
+                  <th className="px-8 py-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gold/10">
+                {events.map(event => (
+                  <tr key={event.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-midnight border border-gold/20 flex items-center justify-center text-2xl">
+                          {event.image_icon}
+                        </div>
+                        <p className="font-bold text-white">{event.title}</p>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <p className="font-bold text-gold">{event.celebrity_name}</p>
+                      <p className="text-xs text-white/60">{event.celebrity_title}</p>
+                    </td>
+                    <td className="px-8 py-6 text-white/60">
+                      {new Date(event.event_date).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </td>
+                    <td className="px-8 py-6 text-right space-x-2">
+                      <button 
+                        onClick={() => handleEditEvent(event)}
+                        className="p-2 text-gold/60 hover:text-gold"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="p-2 text-accent/60 hover:text-accent"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {events.length === 0 && (
+              <div className="p-20 text-center space-y-4">
+                <div className="w-20 h-20 bg-gold/5 rounded-full flex items-center justify-center mx-auto">
+                  <Calendar className="w-10 h-10 text-gold/20" />
+                </div>
+                <p className="text-gold/40">No events found</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'subscriptions' && (
           <div className="bg-slate rounded-3xl border border-gold/10 overflow-hidden">
             <table className="w-full text-left">
@@ -657,7 +807,7 @@ export default function Admin() {
                   <th className="px-8 py-6">User Email</th>
                   <th className="px-8 py-6">Role</th>
                   <th className="px-8 py-6">Joined Date</th>
-                  <th className="px-8 py-6 text-right">Status</th>
+                  <th className="px-8 py-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gold/10">
@@ -691,10 +841,19 @@ export default function Admin() {
                         year: 'numeric'
                       })}
                     </td>
-                    <td className="px-8 py-6 text-right">
-                      <span className="inline-flex items-center gap-1.5 text-emerald-500 text-xs font-bold uppercase tracking-widest">
-                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Active
-                      </span>
+                    <td className="px-8 py-6 text-right space-x-2">
+                      <button 
+                        onClick={() => handleEditUser(user)}
+                        className="p-2 text-gold/60 hover:text-gold"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="p-2 text-accent/60 hover:text-accent"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -731,13 +890,14 @@ export default function Admin() {
             >
               <header className="flex justify-between items-center mb-8">
                 <h3 className="text-3xl font-serif text-gold">
-                  {activeTab === 'books' ? (editingBook.id ? 'Edit Book' : 'Add New Book') : (editingSub.id ? 'Edit Plan' : 'Add New Plan')}
+                  {activeTab === 'books' ? (editingBook.id ? 'Edit Book' : 'Add New Book') : activeTab === 'events' ? (editingEvent.id ? 'Edit Event' : 'Add New Event') : activeTab === 'users' ? (editingUser.id ? 'Edit User' : 'Add New User') : (editingSub.id ? 'Edit Plan' : 'Add New Plan')}
                 </h3>
                 <button 
                   onClick={() => {
                     setIsModalOpen(false);
                     setEditingBook({});
                     setEditingSub({});
+                    setEditingEvent({});
                   }} 
                   className="text-gold/60 hover:text-gold"
                 >
@@ -863,6 +1023,125 @@ export default function Admin() {
                       className="px-8 py-3 rounded-xl bg-gold text-midnight font-bold hover:bg-gold-bright transition-colors flex items-center gap-2"
                     >
                       <Save className="w-5 h-5" /> Save Book
+                    </button>
+                  </div>
+                </form>
+              ) : activeTab === 'events' ? (
+                <form onSubmit={handleSaveEvent} className="grid grid-cols-2 gap-6">
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">Event Title</label>
+                    <input
+                      required
+                      type="text"
+                      value={editingEvent.title || ''}
+                      onChange={e => setEditingEvent({ ...editingEvent, title: e.target.value })}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">Celebrity Name</label>
+                    <input
+                      required
+                      type="text"
+                      value={editingEvent.celebrity_name || ''}
+                      onChange={e => setEditingEvent({ ...editingEvent, celebrity_name: e.target.value })}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">Celebrity Title</label>
+                    <input
+                      required
+                      type="text"
+                      value={editingEvent.celebrity_title || ''}
+                      onChange={e => setEditingEvent({ ...editingEvent, celebrity_title: e.target.value })}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">Event Date</label>
+                    <input
+                      required
+                      type="date"
+                      value={editingEvent.event_date ? new Date(editingEvent.event_date).toISOString().split('T')[0] : ''}
+                      onChange={e => setEditingEvent({ ...editingEvent, event_date: new Date(e.target.value).toISOString() })}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">Image Icon (Emoji or URL)</label>
+                    <input
+                      required
+                      type="text"
+                      value={editingEvent.image_icon || ''}
+                      onChange={e => setEditingEvent({ ...editingEvent, image_icon: e.target.value })}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none"
+                      placeholder="🎤 or https://..."
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">Quote</label>
+                    <textarea
+                      required
+                      rows={3}
+                      value={editingEvent.quote || ''}
+                      onChange={e => setEditingEvent({ ...editingEvent, quote: e.target.value })}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none resize-none"
+                    />
+                  </div>
+                  <div className="col-span-2 flex justify-end gap-4 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-8 py-3 rounded-xl border border-gold/20 text-gold hover:bg-gold/10 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-8 py-3 rounded-xl bg-gold text-midnight font-bold hover:bg-gold-bright transition-colors flex items-center gap-2"
+                    >
+                      <Save className="w-5 h-5" /> Save Event
+                    </button>
+                  </div>
+                </form>
+              ) : activeTab === 'users' ? (
+                <form onSubmit={handleSaveUser} className="grid grid-cols-2 gap-6">
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">User Email</label>
+                    <input
+                      required
+                      type="email"
+                      value={editingUser.email || ''}
+                      onChange={e => setEditingUser({ ...editingUser, email: e.target.value })}
+                      disabled={!!editingUser.id}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none disabled:opacity-50"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gold/60 uppercase tracking-widest mb-2">Role</label>
+                    <select
+                      value={editingUser.role || 'user'}
+                      onChange={e => setEditingUser({ ...editingUser, role: e.target.value })}
+                      className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none"
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2 flex justify-end gap-4 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-8 py-3 rounded-xl border border-gold/20 text-gold hover:bg-gold/10 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-8 py-3 rounded-xl bg-gold text-midnight font-bold hover:bg-gold-bright transition-colors flex items-center gap-2"
+                    >
+                      <Save className="w-5 h-5" /> Save User
                     </button>
                   </div>
                 </form>
