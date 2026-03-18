@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Information about the user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Favorite": {
+      "title": "Favorite Book",
+      "description": "A book saved by a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "bookId": { "type": "string" },
+        "savedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "bookId"]
+    },
+    "ReadingProgress": {
+      "title": "Reading Progress",
+      "description": "User's progress in a specific book",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "bookId": { "type": "string" },
+        "progress": { "type": "number", "description": "Percentage of book read (0-100)" },
+        "lastReadAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "bookId", "progress"]
+    },
+    "Review": {
+      "title": "Book Review",
+      "description": "User review and rating for a book",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "bookId": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userName", "bookId", "rating", "comment"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/users/{userId}/favorites/{favoriteId}": {
+      "schema": "Favorite",
+      "description": "User's favorite books"
+    },
+    "/users/{userId}/reading_progress/{progressId}": {
+      "schema": "ReadingProgress",
+      "description": "User's reading progress"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Public book reviews"
+    }
+  }
+}

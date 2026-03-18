@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        ((request.auth.token.email == "kashifharryseller@gmail.com" && request.auth.token.email_verified == true) ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string &&
+             data.email is string &&
+             (!('role' in data) || data.role in ['user', 'admin']);
+    }
+
+    function isValidFavorite(data) {
+      return data.keys().hasAll(['userId', 'bookId']) &&
+             data.userId == request.auth.uid &&
+             data.bookId is string;
+    }
+
+    function isValidProgress(data) {
+      return data.keys().hasAll(['userId', 'bookId', 'progress']) &&
+             data.userId == request.auth.uid &&
+             data.bookId is string &&
+             data.progress is number && data.progress >= 0 && data.progress <= 100;
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['userId', 'userName', 'bookId', 'rating', 'comment']) &&
+             data.userId == request.auth.uid &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() <= 1000;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidReview(request.resource.data);
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      (request.resource.data.role == resource.data.role || isAdmin());
+
+      match /favorites/{favoriteId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      match /reading_progress/{progressId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+      
+      // Catch-all for any other user-specific data
+      match /{allPaths=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
