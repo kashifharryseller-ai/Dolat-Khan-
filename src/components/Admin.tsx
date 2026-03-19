@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import Fuse from 'fuse.js';
+import { Highlight } from './Highlight';
 import { Book, Event, Stats, Subscription, User } from '../types';
 import { Plus, Trash2, Edit2, LayoutDashboard, BookOpen, Calendar, Users, LogOut, Loader2, Save, X, Search, ArrowUpDown, Filter, CreditCard, Shield, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -97,34 +99,45 @@ export default function Admin() {
     }
   };
 
-  const filteredAndSortedBooks = books
-    .filter(book => {
-      const query = searchQuery.toLowerCase();
-      const matchesSearch = (book.title?.toLowerCase() || '').includes(query) || 
-                           (book.author?.toLowerCase() || '').includes(query);
-      const matchesBestseller = filterBestseller === 'all' || 
-                               (filterBestseller === 'yes' && book.is_bestseller) ||
-                               (filterBestseller === 'no' && !book.is_bestseller);
-      const matchesAudiobook = filterAudiobook === 'all' || 
-                              (filterAudiobook === 'yes' && book.is_audiobook) ||
-                              (filterAudiobook === 'no' && !book.is_audiobook);
-      return matchesSearch && matchesBestseller && matchesAudiobook;
-    })
-    .sort((a, b) => {
-      const valA = a[sortKey];
-      const valB = b[sortKey];
-      
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-      }
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return sortOrder === 'asc' ? (valA as number) - (valB as number) : (valB as number) - (valA as number);
-      }
-      // For boolean or other types, just simple comparison
-      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
-    });
+  const filteredAndSortedBooks = useMemo(() => {
+    let result = books.map(book => ({ item: book, matches: undefined as readonly Fuse.FuseResultMatch[] | undefined }));
+
+    if (searchQuery.trim()) {
+      const fuse = new Fuse(books, {
+        keys: ['title', 'author', 'category', 'description'],
+        includeMatches: true,
+        threshold: 0.3,
+        ignoreLocation: true,
+      });
+      result = fuse.search(searchQuery);
+    }
+
+    return result
+      .filter(({ item: book }) => {
+        const matchesBestseller = filterBestseller === 'all' || 
+                                 (filterBestseller === 'yes' && book.is_bestseller) ||
+                                 (filterBestseller === 'no' && !book.is_bestseller);
+        const matchesAudiobook = filterAudiobook === 'all' || 
+                                (filterAudiobook === 'yes' && book.is_audiobook) ||
+                                (filterAudiobook === 'no' && !book.is_audiobook);
+        return matchesBestseller && matchesAudiobook;
+      })
+      .sort((a, b) => {
+        const valA = a.item[sortKey];
+        const valB = b.item[sortKey];
+        
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return sortOrder === 'asc' ? (valA as number) - (valB as number) : (valB as number) - (valA as number);
+        }
+        // For boolean or other types, just simple comparison
+        if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+        if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+  }, [books, searchQuery, filterBestseller, filterAudiobook, sortKey, sortOrder]);
 
   const toggleSort = (key: keyof Book) => {
     if (sortKey === key) {
@@ -628,7 +641,7 @@ export default function Admin() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gold/10">
-                  {filteredAndSortedBooks.map(book => (
+                  {filteredAndSortedBooks.map(({ item: book, matches }) => (
                     <tr key={book.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-4">
@@ -640,12 +653,16 @@ export default function Admin() {
                             )}
                           </div>
                           <div>
-                            <p className="font-bold text-white">{book.title}</p>
+                            <p className="font-bold text-white">
+                              <Highlight text={book.title} matches={matches?.filter(m => m.key === 'title')} />
+                            </p>
                             <p className="text-xs text-gold/60">{book.category}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6 text-gold/80">{book.author}</td>
+                      <td className="px-8 py-6 text-gold/80">
+                        <Highlight text={book.author} matches={matches?.filter(m => m.key === 'author')} />
+                      </td>
                       <td className="px-8 py-6 font-bold">Rs. {book.price}</td>
                       <td className="px-8 py-6">
                         <div className="flex flex-col gap-1">

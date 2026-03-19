@@ -1,4 +1,6 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
+import Fuse from 'fuse.js';
+import { Highlight } from './components/Highlight';
 import { Book, Event, Stats, Subscription, Review } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -147,14 +149,18 @@ export default function App() {
   }, []);
 
   const filteredBooks = useMemo(() => {
-    if (!searchQuery.trim()) return books;
-    const query = searchQuery.toLowerCase();
-    return books.filter(book => 
-      (book.title?.toLowerCase() || '').includes(query) ||
-      (book.author?.toLowerCase() || '').includes(query) ||
-      (book.category?.toLowerCase() || '').includes(query) ||
-      (book.description?.toLowerCase() || '').includes(query)
-    );
+    if (!searchQuery.trim()) {
+      return books.map(book => ({ item: book }));
+    }
+    
+    const fuse = new Fuse(books, {
+      keys: ['title', 'author', 'category', 'description'],
+      includeMatches: true,
+      threshold: 0.3,
+      ignoreLocation: true,
+    });
+    
+    return fuse.search(searchQuery);
   }, [books, searchQuery]);
 
   const toggleFavorite = async (bookId: number) => {
@@ -518,7 +524,7 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-12">
-          {filteredBooks.map((book, i) => (
+          {filteredBooks.map(({ item: book, matches }, i) => (
             <motion.div
               key={book.id}
               initial={{ opacity: 0, y: 30 }}
@@ -566,10 +572,14 @@ export default function App() {
               </div>
               <div className="mt-8 space-y-3 px-2">
                 <div className="flex items-center gap-3">
-                  <span className="text-gold text-[10px] font-bold uppercase tracking-[3px]">{book.category}</span>
+                  <span className="text-gold text-[10px] font-bold uppercase tracking-[3px]">
+                    <Highlight text={book.category} matches={matches?.filter(m => m.key === 'category')} />
+                  </span>
                   <div className="h-px flex-1 bg-gold/10" />
                 </div>
-                <h3 className="font-serif text-2xl text-white group-hover:text-gold transition-colors line-clamp-1 leading-tight">{book.title}</h3>
+                <h3 className="font-serif text-2xl text-white group-hover:text-gold transition-colors line-clamp-1 leading-tight">
+                  <Highlight text={book.title} matches={matches?.filter(m => m.key === 'title')} />
+                </h3>
                 
                 {readingProgress[book.id.toString()] !== undefined && (
                   <div className="space-y-1.5">
@@ -588,7 +598,9 @@ export default function App() {
                 )}
 
                 <div className="flex justify-between items-center pt-1">
-                  <span className="text-white/40 text-sm font-medium">by {book.author}</span>
+                  <span className="text-white/40 text-sm font-medium">
+                    by <Highlight text={book.author} matches={matches?.filter(m => m.key === 'author')} />
+                  </span>
                   <div className="flex gap-2">
                     {book.category.includes('Case Laws') && <Scale className="w-4 h-4 text-gold/40" />}
                     {book.is_audiobook && <Music className="w-4 h-4 text-gold/40" />}
