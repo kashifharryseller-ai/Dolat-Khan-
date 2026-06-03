@@ -100,7 +100,7 @@ export default function Admin() {
   };
 
   const filteredAndSortedBooks = useMemo(() => {
-    let result = books.map(book => ({ item: book, matches: undefined as readonly Fuse.FuseResultMatch[] | undefined }));
+    let result = books.map(book => ({ item: book, matches: [] as any[] }));
 
     if (searchQuery.trim()) {
       const fuse = new Fuse(books, {
@@ -109,7 +109,7 @@ export default function Admin() {
         threshold: 0.3,
         ignoreLocation: true,
       });
-      result = fuse.search(searchQuery);
+      result = fuse.search(searchQuery) as any;
     }
 
     return result
@@ -844,9 +844,13 @@ export default function Admin() {
                           <span className="flex items-center gap-1.5 bg-accent/20 text-accent text-[10px] px-3 py-1 rounded-full uppercase font-bold border border-accent/20">
                             <Shield className="w-3 h-3" /> {user.role}
                           </span>
+                        ) : user.role === 'member' ? (
+                          <span className="flex items-center gap-1.5 bg-gold/20 text-gold text-[10px] px-3 py-1 rounded-full uppercase font-bold border border-gold/20">
+                            <Star className="w-3 h-3" /> {user.role}
+                          </span>
                         ) : (
-                          <span className="bg-gold/20 text-gold text-[10px] px-3 py-1 rounded-full uppercase font-bold border border-gold/20">
-                            {user.role}
+                          <span className="bg-white/10 text-white/60 text-[10px] px-3 py-1 rounded-full uppercase font-bold border border-white/10">
+                            {user.role || 'user'}
                           </span>
                         )}
                       </div>
@@ -1143,6 +1147,7 @@ export default function Admin() {
                       className="w-full bg-midnight border border-gold/20 rounded-xl py-3 px-4 text-white focus:border-gold outline-none"
                     >
                       <option value="user">User</option>
+                      <option value="member">Member</option>
                       <option value="admin">Admin</option>
                     </select>
                   </div>

@@ -37,6 +37,8 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
 
   if (!isOpen) return null;
 
+  const isPremium = userData?.role === 'admin' || userData?.isPremium || userData?.role === 'member';
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6">
@@ -89,11 +91,36 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                 <div className="inline-flex items-center gap-1.5 bg-gold/10 border border-gold/20 px-3 py-1 rounded-full text-gold text-xs font-bold tracking-widest uppercase">
                   {userData?.role === 'admin' ? (
                     <><Shield className="w-3.5 h-3.5" /> Admin</>
+                  ) : isPremium ? (
+                    <><Star className="w-3.5 h-3.5" /> Premium</>
                   ) : (
-                    <><Star className="w-3.5 h-3.5" /> Level 12</>
+                    <><Star className="w-3.5 h-3.5" /> Level {userData?.level || 12}</>
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Premium Banner */}
+            <div className={`mb-8 p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isPremium ? 'bg-gold/5 border-gold/20' : 'bg-white/5 border-white/10'}`}>
+               <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isPremium ? 'bg-gold/10 text-gold' : 'bg-white/5 text-white/40'}`}>
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div>
+                     <h4 className="text-white font-bold text-sm">{isPremium ? 'Premium Membership Active' : 'Free Account'}</h4>
+                     <p className="text-xs text-white/50 mt-0.5">{isPremium ? 'Enjoy unlimited access to audiobooks & premium guides.' : 'Upgrade to listen to audiobooks and read full books.'}</p>
+                  </div>
+               </div>
+               {!isPremium && (
+                  <a 
+                    href={`https://wa.me/923001234567?text=Hi, I would like to upgrade my account. My email is ${user?.email || ''}`}
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="text-[10px] font-bold uppercase tracking-widest bg-gold hover:bg-gold-bright text-midnight px-6 py-2.5 rounded-xl transition-colors text-center sm:text-left"
+                  >
+                    Upgrade Now
+                  </a>
+               )}
             </div>
 
             {/* Stats Grid */}
