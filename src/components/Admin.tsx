@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import { Highlight } from './Highlight';
 import { Book, Event, Stats, Subscription, User } from '../types';
-import { Plus, Trash2, Edit2, LayoutDashboard, BookOpen, Calendar, Users, LogOut, Loader2, Save, X, Search, ArrowUpDown, Filter, CreditCard, Shield, TrendingUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, LayoutDashboard, BookOpen, Calendar, Users, LogOut, Loader2, Save, X, Search, ArrowUpDown, Filter, CreditCard, Shield, TrendingUp, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 

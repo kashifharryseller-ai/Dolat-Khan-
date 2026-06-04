@@ -321,18 +321,7 @@ export default function App() {
 
           <div className="hidden md:flex items-center gap-8 lg:gap-10">
             <Link to="/" className="text-sm font-medium text-white/70 hover:text-gold transition-colors relative group">Home</Link>
-            
-            {/* E-Library Dropdown */}
-            <div className="relative group/dropdown">
-              <button className="text-sm font-medium text-white/70 hover:text-gold transition-colors flex items-center gap-1">
-                E-Library <ChevronRight className="w-4 h-4 rotate-90" />
-              </button>
-              <div className="absolute top-full left-0 mt-2 w-48 bg-midnight border border-gold/10 rounded-xl py-2 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-[1100] shadow-2xl">
-                <Link to="/e-library" className="block px-4 py-2 text-sm text-white/70 hover:text-gold hover:bg-white/5 transition-colors">All Books</Link>
-                <Link to="/audiobooks" className="block px-4 py-2 text-sm text-white/70 hover:text-gold hover:bg-white/5 transition-colors">Audiobooks</Link>
-              </div>
-            </div>
-
+            <Link to="/e-library" className="text-sm font-medium text-white/70 hover:text-gold transition-colors relative group">E Books</Link>
             <Link to="/events" className="text-sm font-medium text-white/70 hover:text-gold transition-colors relative group">Events</Link>
             <Link to="/about" className="text-sm font-medium text-white/70 hover:text-gold transition-colors relative group">About</Link>
             
@@ -397,11 +386,13 @@ export default function App() {
                 >
                   Home
                 </Link>
-                <div className="flex flex-col pl-4 gap-2">
-                  <span className="text-gold text-xs font-bold uppercase tracking-widest">E-Library</span>
-                  <Link to="/e-library" onClick={() => setIsMenuOpen(false)} className="text-white/60 hover:text-gold py-1">All Books</Link>
-                  <Link to="/audiobooks" onClick={() => setIsMenuOpen(false)} className="text-white/60 hover:text-gold py-1">Audiobooks</Link>
-                </div>
+                <Link 
+                  to="/e-library" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-lg font-medium text-white/70 hover:text-gold py-2"
+                >
+                  E Books
+                </Link>
                 <Link 
                   to="/events" 
                   onClick={() => setIsMenuOpen(false)}
@@ -1398,27 +1389,27 @@ export default function App() {
                 <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              <div className="grid grid-cols-1 md:grid-cols-2">
-                <div className="bg-navy aspect-[3/4] md:aspect-auto flex items-center justify-center p-12 sm:p-20 relative overflow-hidden group">
+              <div className="grid grid-cols-1 md:grid-cols-5 h-[90vh] md:h-[80vh]">
+                <div className="bg-navy md:col-span-2 flex items-center justify-center p-12 sm:p-20 relative overflow-hidden group h-64 md:h-full">
                   <div className="absolute inset-0 bg-gradient-to-br from-gold/10 to-transparent opacity-50" />
-                  <div className="relative z-10 drop-shadow-[0_45px_45px_rgba(0,0,0,0.6)] transform group-hover:scale-110 transition-transform duration-700 w-full h-full flex items-center justify-center">
+                  <div className="relative z-10 drop-shadow-[0_45px_45px_rgba(0,0,0,0.6)] transform group-hover:scale-105 transition-transform duration-700 w-full h-full flex items-center justify-center">
                     {selectedBook.cover_icon.startsWith('http') ? (
                       <img src={selectedBook.cover_icon} alt={selectedBook.title} className="max-h-full max-w-full object-contain rounded-xl shadow-2xl" referrerPolicy="no-referrer" />
                     ) : (
-                      <div className="text-[10rem] sm:text-[14rem] leading-none select-none">
+                      <div className="text-[8rem] sm:text-[12rem] leading-none select-none">
                         {selectedBook.cover_icon}
                       </div>
                     )}
                   </div>
-                  <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center text-white/20">
+                  <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center text-white/20 hidden md:flex">
                     <BookOpen className="w-8 h-8" />
                     <span className="font-serif italic text-sm tracking-widest">Kitabon Ki Dolat</span>
                   </div>
                 </div>
-                <div className="p-8 sm:p-12 lg:p-16 flex flex-col h-full">
-                  <div className="space-y-8 flex-1">
+                <div className="md:col-span-3 p-6 sm:p-10 lg:p-14 flex flex-col h-[calc(90vh-16rem)] md:h-full overflow-y-auto border-l border-white/5 scroll-smooth">
+                  <div className="space-y-8">
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
                         <span className="bg-gold/10 text-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-gold/20">
                           <Highlight text={selectedBook.category} matches={selectedBookMatches?.filter((m: any) => m.key === 'category')} />
                         </span>
@@ -1428,7 +1419,7 @@ export default function App() {
                           </span>
                         )}
                       </div>
-                      <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-white leading-tight">
+                      <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white leading-tight">
                         <Highlight text={selectedBook.title} matches={selectedBookMatches?.filter((m: any) => m.key === 'title')} />
                       </h2>
                       <div className="flex items-center gap-4">
@@ -1453,9 +1444,50 @@ export default function App() {
                       </span>
                     </div>
 
+                    {/* Action Buttons moved up */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4">
+                      <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-3 hover:border-gold transition-colors flex flex-col justify-between">
+                        <div>
+                          <span className="text-gold text-[10px] font-bold uppercase tracking-widest">Digital Access</span>
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <span className="text-2xl font-bold text-white">Premium</span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => handlePremiumAction(() => {
+                             if (selectedBook.is_audiobook) {
+                               setSelectedBook(null);
+                               setPlayingAudiobook(selectedBook);
+                             } else {
+                               alert("Book Guide: You can now access the full E-Book from your library. Format options will appear shortly.");
+                             }
+                          })}
+                          className="w-full bg-gold text-midnight py-3 rounded-xl font-bold hover:bg-gold-bright transition-colors text-sm flex items-center justify-center gap-2"
+                        >
+                          {selectedBook.is_audiobook ? <Play className="w-4 h-4 fill-current" /> : <BookOpen className="w-4 h-4" />} Access Now
+                        </button>
+                      </div>
+                      <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-3 hover:border-accent transition-colors flex flex-col justify-between">
+                        <div>
+                          <span className="text-accent text-[10px] font-bold uppercase tracking-widest">Print Edition</span>
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <span className="text-2xl font-bold text-white">Rs. {Math.floor(selectedBook.price * 1.5)}</span>
+                          </div>
+                        </div>
+                        <a 
+                          href={`https://wa.me/923001234567?text=Hi, I would like to order the print edition of "${selectedBook.title}".`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="w-full bg-white/10 text-white border border-white/20 py-3 rounded-xl font-bold hover:bg-accent hover:border-accent hover:scale-[1.02] transition-all text-sm flex items-center justify-center gap-2"
+                        >
+                          <MessageCircle className="w-4 h-4" /> Order via WhatsApp
+                        </a>
+                      </div>
+                    </div>
+
                     <div className="space-y-4">
                       <h4 className="text-white font-bold uppercase tracking-widest text-[10px]">Synopsis</h4>
-                      <p className="text-white/60 leading-relaxed text-base sm:text-lg">
+                      <p className="text-white/60 leading-relaxed text-sm sm:text-base">
                         <Highlight text={selectedBook.description} matches={selectedBookMatches?.filter((m: any) => m.key === 'description')} />
                       </p>
                     </div>
@@ -1470,10 +1502,10 @@ export default function App() {
                     )}
 
                     {user && (
-                      <div className="space-y-4 p-6 bg-white/5 rounded-2xl border border-white/10">
+                      <div className="space-y-4 p-5 bg-white/5 rounded-2xl border border-white/10">
                         <div className="flex justify-between items-center">
                           <h4 className="text-gold font-bold uppercase tracking-widest text-[10px]">Your Reading Progress</h4>
-                          <span className="text-gold font-bold">{readingProgress[selectedBook.id.toString()] || 0}%</span>
+                          <span className="text-gold font-bold text-sm">{readingProgress[selectedBook.id.toString()] || 0}%</span>
                         </div>
                         <input 
                           type="range"
@@ -1483,15 +1515,14 @@ export default function App() {
                           onChange={(e) => updateProgress(selectedBook.id, parseInt(e.target.value))}
                           className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-gold"
                         />
-                        <p className="text-[10px] text-white/40 italic">Slide to update your progress in this book</p>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-6 border-y border-white/5">
                       {[
-                        { label: 'Format', value: selectedBook.is_audiobook ? 'Audio + E-Book' : 'E-Book' },
+                        { label: 'Format', value: selectedBook.is_audiobook ? 'Audio & E-Book' : 'E-Book Only' },
                         { label: 'Language', value: 'Urdu / English' },
-                        { label: 'Delivery', value: 'Instant' },
+                        { label: 'Delivery', value: 'Instant Access' },
                       ].map((detail, idx) => (
                         <div key={idx} className="space-y-1">
                           <p className="text-[10px] text-gold/40 uppercase font-bold tracking-widest">{detail.label}</p>
@@ -1499,9 +1530,8 @@ export default function App() {
                         </div>
                       ))}
                     </div>
-                  </div>
 
-                    <div className="space-y-8 pt-8 border-t border-white/5">
+                    <div className="space-y-6 pt-4">
                       <div className="flex items-center justify-between">
                         <h4 className="text-white font-bold uppercase tracking-widest text-[10px]">Reader Reviews</h4>
                         <div className="flex items-center gap-2 text-gold">
@@ -1615,40 +1645,6 @@ export default function App() {
                       </div>
                     )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-12 mt-auto">
-                    <div className="bg-white/5 p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-3 sm:space-y-4 hover:border-gold transition-colors group">
-                      <span className="text-gold text-[10px] sm:text-xs font-bold uppercase tracking-widest">Digital Access</span>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl sm:text-4xl font-bold text-white">Premium</span>
-                      </div>
-                      <button 
-                        onClick={() => handlePremiumAction(() => {
-                           if (selectedBook.is_audiobook) {
-                             setSelectedBook(null);
-                             setPlayingAudiobook(selectedBook);
-                           } else {
-                             alert("Book Guide: You can now access the full E-Book from your library. Format options will appear shortly.");
-                           }
-                        })}
-                        className="w-full bg-gold text-midnight py-3 sm:py-4 rounded-xl font-bold hover:bg-gold-bright transition-colors text-sm sm:text-base"
-                      >
-                        Access Now
-                      </button>
-                    </div>
-                    <div className="bg-white/5 p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-3 sm:space-y-4 hover:border-accent transition-colors group">
-                      <span className="text-accent text-[10px] sm:text-xs font-bold uppercase tracking-widest">Print Edition</span>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl sm:text-4xl font-bold text-white">Rs. {Math.floor(selectedBook.price * 1.5)}</span>
-                      </div>
-                      <a 
-                        href={`https://wa.me/923001234567?text=Hi, I would like to order the print edition of "${selectedBook.title}".`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="w-full bg-accent text-white py-3 sm:py-4 rounded-xl font-bold hover:bg-accent-light transition-colors text-sm sm:text-base flex items-center justify-center gap-2"
-                      >
-                        <MessageCircle className="w-5 h-5 fill-current" /> Order via WhatsApp
-                      </a>
-                    </div>
                   </div>
                 </div>
               </div>
