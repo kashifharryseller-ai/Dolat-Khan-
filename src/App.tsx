@@ -126,9 +126,19 @@ export default function App() {
         
         // Listen for user data (to check premium/membership status)
         const userDocRef = doc(db, 'users', currentUser.uid);
-        const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+        const unsubscribeUser = onSnapshot(userDocRef, async (docSnap) => {
           if (docSnap.exists()) {
-            setUserData(docSnap.data());
+            const data = docSnap.data();
+            try {
+              const res = await fetch(`/api/user/role?email=${encodeURIComponent(currentUser.email || '')}`);
+              if (res.ok) {
+                const result = await res.json();
+                if (result.role) data.role = result.role;
+              }
+            } catch (err) {
+              console.error('Failed to fetch role from backend', err);
+            }
+            setUserData(data);
           }
         });
 
@@ -284,17 +294,18 @@ export default function App() {
   const fetchData = async () => {
     try {
       const [booksRes, eventsRes, statsRes, subsRes] = await Promise.all([
-        fetch('/api/books'),
-        fetch('/api/events'),
-        fetch('/api/stats'),
-        fetch('/api/subscriptions')
+        fetch('/api/books').catch(() => null),
+        fetch('/api/events').catch(() => null),
+        fetch('/api/stats').catch(() => null),
+        fetch('/api/subscriptions').catch(() => null)
       ]);
-      setBooks(await booksRes.json());
-      setEvents(await eventsRes.json());
-      setStats(await statsRes.json());
-      setSubs(await subsRes.json());
+
+      if (booksRes?.ok) setBooks(await booksRes.json());
+      if (eventsRes?.ok) setEvents(await eventsRes.json());
+      if (statsRes?.ok) setStats(await statsRes.json());
+      if (subsRes?.ok) setSubs(await subsRes.json());
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching data:", error);
     }
   };
 

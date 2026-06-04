@@ -18,6 +18,7 @@ export const signInWithGoogle = async () => {
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
     
+    let role = 'user';
     if (!userDoc.exists()) {
       await setDoc(userDocRef, {
         uid: user.uid,
@@ -27,7 +28,21 @@ export const signInWithGoogle = async () => {
         role: 'user',
         createdAt: new Date().toISOString()
       });
+    } else {
+      role = userDoc.data()?.role || 'user';
     }
+
+    // Sync with SQLite backend
+    try {
+      await fetch('/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, role, uid: user.uid })
+      });
+    } catch (e) {
+      console.error("Failed to sync user to backend", e);
+    }
+
     return user;
   } catch (error) {
     console.error("Error signing in with Google:", error);
@@ -55,11 +70,15 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     },
     operationType,
     path
+  };
+  
+  const errorMsg = error instanceof Error ? error.message : String(error);
+  if (errorMsg.includes('unavailable') || errorMsg.includes('offline')) {
+    console.warn('Firestore is operating offline or unavailable:', errorMsg);
+    return; // Don't throw for offline errors
   }
+  
   console.error('Firestore Error: ', JSON.stringify(errInfo));
-  // We don't always want to throw if it's a background listener, 
-  // but for the sake of the requirement we will.
-  // In a real app, we might just log it or show a toast.
   throw new Error(JSON.stringify(errInfo));
 }
 

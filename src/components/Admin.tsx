@@ -81,17 +81,18 @@ export default function Admin() {
     setIsLoading(true);
     try {
       const [booksRes, eventsRes, statsRes, subsRes, usersRes] = await Promise.all([
-        fetch('/api/books'),
-        fetch('/api/events'),
-        fetch('/api/stats'),
-        fetch('/api/subscriptions'),
-        fetch('/api/admin/users')
+        fetch('/api/books').catch(() => null),
+        fetch('/api/events').catch(() => null),
+        fetch('/api/stats').catch(() => null),
+        fetch('/api/subscriptions').catch(() => null),
+        fetch('/api/admin/users').catch(() => null)
       ]);
-      setBooks(await booksRes.json());
-      setEvents(await eventsRes.json());
-      setStats(await statsRes.json());
-      setSubs(await subsRes.json());
-      setUsers(await usersRes.json());
+      
+      if (booksRes?.ok) setBooks(await booksRes.json());
+      if (eventsRes?.ok) setEvents(await eventsRes.json());
+      if (statsRes?.ok) setStats(await statsRes.json());
+      if (subsRes?.ok) setSubs(await subsRes.json());
+      if (usersRes?.ok) setUsers(await usersRes.json());
     } catch (error) {
       console.error(error);
     } finally {

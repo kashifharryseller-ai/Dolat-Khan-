@@ -49,25 +49,15 @@ export default function Splash() {
             ))}
           </div>
 
-          <div className="perspective-[2000px] w-[350px] h-[450px] sm:w-[500px] sm:h-[600px] relative preserve-3d">
+          <div className="w-[350px] sm:w-[500px] relative">
             <motion.div
-              initial={{ rotateY: 0, scale: 0.8 }}
-              animate={{ 
-                rotateY: [0, 0, -5, -180, -180, -180],
-                scale: [0.8, 1, 1.05, 1.2, 1.5, 2],
-                z: [0, 0, 0, 50, 100, 150],
-                opacity: [1, 1, 1, 1, 1, 0]
-              }}
-              transition={{ duration: 5, ease: [0.68, -0.55, 0.265, 1.55] }}
-              className="w-full h-full relative preserve-3d"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: [0, 1, 1, 1, 0] }}
+              transition={{ duration: 5, ease: "easeInOut" }}
+              className="w-full relative shadow-2xl rounded-lg"
             >
-              {/* Spine */}
-              <div 
-                className="absolute left-0 top-0 w-[40px] h-full bg-gradient-to-r from-[#8B7355] via-[#6B5845] to-[#4B3825] -rotate-y-90 -translate-z-5 shadow-inner"
-              />
-              
               {/* Cover */}
-              <div className="absolute inset-0 rounded-lg flex flex-col items-center justify-center backface-hidden bg-gradient-to-br from-gold via-gold-bright to-gold border-[5px] border-[#8B7355] shadow-2xl">
+              <div className="rounded-lg flex flex-col items-center justify-center p-16 sm:p-24 bg-gradient-to-br from-gold via-gold-bright to-gold border-[5px] border-[#8B7355] aspect-[3/4]">
                 <div className="absolute inset-5 border-2 border-[#8B7355]/40 rounded-sm" />
                 <div className="absolute inset-7 border border-[#8B7355]/30 rounded-sm" />
                 
@@ -76,47 +66,28 @@ export default function Splash() {
                 </h1>
                 <div className="flex items-center gap-3 relative z-10">
                   <div className="h-[1px] w-8 bg-midnight/40" />
-                  <p className="text-sm sm:text-base text-midnight font-bold tracking-[6px] uppercase drop-shadow-sm">
+                  <p className="text-sm sm:text-base text-midnight font-bold tracking-[6px] uppercase drop-shadow-sm text-center">
                     Kitabon Ki Dolat
                   </p>
                   <div className="h-[1px] w-8 bg-midnight/40" />
                 </div>
               </div>
-              
-              {/* Pages */}
-              <div className="absolute inset-[1%] bg-cream rotate-y-180 -translate-z-2 rounded-lg p-8 sm:p-12 flex flex-col justify-center shadow-inner">
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 2.5, duration: 1 }}
-                  className="font-serif text-2xl sm:text-3xl text-midnight text-center italic leading-relaxed"
-                >
-                  "True wealth lies not in gold,<br/>but in the pages of books..."
-                </motion.p>
-              </div>
-
-              {/* Page Turn Effect */}
-              <motion.div 
-                initial={{ rotateY: 0 }}
-                animate={{ rotateY: -180 }}
-                transition={{ delay: 1, duration: 3, ease: "easeInOut" }}
-                className="absolute w-1/2 h-full right-0 top-0 bg-gradient-to-r from-cream/90 to-cream origin-left shadow-2xl"
-              />
             </motion.div>
           </div>
 
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 3.5 }}
-            className="absolute bottom-[150px] font-urdu text-2xl sm:text-3xl text-gold"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: [0, 1, 1, 1, 0], y: 0 }}
+            transition={{ duration: 5 }}
+            className="absolute bottom-[100px] flex flex-col items-center gap-6"
           >
-            اصلی دولت کتابوں میں ہے
+            <div className="font-urdu text-2xl sm:text-3xl text-gold">
+              اصلی دولت کتابوں میں ہے
+            </div>
+            <div className="text-sm text-gold/60 tracking-[4px] uppercase animate-pulse">
+              Loading Experience...
+            </div>
           </motion.div>
-          
-          <div className="absolute bottom-[80px] text-lg text-gold tracking-widest animate-pulse">
-            Opening your library...
-          </div>
         </motion.div>
       )}
     </AnimatePresence>

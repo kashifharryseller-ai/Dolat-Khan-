@@ -211,14 +211,29 @@ async function startServer() {
     });
   });
 
+  app.post('/api/user/sync', (req, res) => {
+    const { email, role, uid } = req.body;
+    if (!email) return res.status(400).json({ error: 'email required' });
+    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    if (!user) {
+      db.prepare('INSERT INTO users (email, role) VALUES (?, ?)').run(email, role || 'user');
+    }
+    res.json({ success: true });
+  });
+
+  app.get('/api/user/role', (req, res) => {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'email required' });
+    const user = db.prepare('SELECT role FROM users WHERE email = ?').get(email) as { role: string } | undefined;
+    res.json({ role: user?.role || 'user' });
+  });
+
   // Admin Auth Routes
   app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
       res.cookie(SESSION_COOKIE_NAME, 'authenticated', {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
         maxAge: 24 * 60 * 60 * 1000 // 1 day
       });
       res.json({ success: true });
@@ -233,9 +248,7 @@ async function startServer() {
 
   app.post('/api/admin/logout', (req, res) => {
     res.clearCookie(SESSION_COOKIE_NAME, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none'
+      httpOnly: true
     });
     res.json({ success: true });
   });
